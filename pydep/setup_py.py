@@ -65,6 +65,8 @@ def setup_info(setupfile):
 
     try:
         runpy.run_path(path.basename(setupfile), run_name='__main__')
+    except Exception as err:
+        sys.stderr.write('error running setup script %s: %s\n' % (setupfile, err))
     finally:
         # Restore stdout
         os.dup2(old_stdout, 1)  # restores for subprocesses
