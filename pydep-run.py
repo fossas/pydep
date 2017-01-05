@@ -154,6 +154,10 @@ def smoke_test(args):
 
 
 def setup_dict_to_json_serializable_dict(d, **kw):
+    if 'classifiers' in d:
+        classifier_licenses = [classifier for classifier in d['classifiers'] if classifier.lower().startswith('license')]
+    else:
+        classifier_licenses = []
     return {
         'rootdir': kw['rootdir'] if 'rootdir' in kw else None,
         'project_name': d['name'] if 'name' in d else None,
@@ -164,6 +168,8 @@ def setup_dict_to_json_serializable_dict(d, **kw):
         'scripts': d['scripts'] if 'scripts' in d else None,
         'author': d['author'] if 'author' in d else None,
         'description': d['description'] if 'description' in d else None,
+        'license': d['license'] if 'license' in d else None,
+        'classifier_licenses': classifier_licenses
     }
 
 
