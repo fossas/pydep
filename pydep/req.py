@@ -20,12 +20,10 @@ from pydep.vcs import parse_repo_url
 
 def requirements(rootdir, resolve=True):
     """
-    Accepts the root directory of a PyPI package and returns its requirements.
+    Accepts the root directory of a PyPI package and returns its setup.py requirements.
     Returns (requirements, error_string) tuple. error_string is None if no error.
     """
-    reqs, err = requirements_from_requirements_txt(rootdir)
-    if err is not None:
-        reqs, err = requirements_from_setup_py(rootdir)
+    reqs, err = requirements_from_setup_py(rootdir)
     if err is not None:
         return None, 'could not get requirements due to error %s' % err
 
