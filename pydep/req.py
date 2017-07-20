@@ -49,7 +49,7 @@ def requirements_from_setup_py(rootdir):
     if 'install_requires' in setup_dict:
         req_strs = setup_dict['install_requires']
         for req_str in req_strs:
-            reqs.append(SetupToolsRequirement(pr.Requirement.parse(req_str)))
+            reqs.append(SetupToolsRequirement(pr.Requirement.parse(req_str), path.join(rootdir, 'setup.py')))
     return reqs, None
 
 
@@ -65,9 +65,9 @@ def requirements_from_requirements_txt(rootdir):
     for f in req_files:
         for install_req in pip.req.parse_requirements(f, session=pip.download.PipSession()):
             if install_req.link is not None:
-                req = PipURLInstallRequirement(install_req)
+                req = PipURLInstallRequirement(install_req, f)
             else:
-                req = SetupToolsRequirement(install_req.req)
+                req = SetupToolsRequirement(install_req.req, f)
             all_reqs[str(req)] = req
 
     return all_reqs.values(), None
@@ -78,8 +78,9 @@ class SetupToolsRequirement(object):
     This represents a standard python requirement as defined by setuptools (e.g., "mypkg>=0.0.1").
     The constructor takes a pkg_resources.Requirement.
     """
-    def __init__(self, req):
+    def __init__(self, req, origin_path=None):
         self.req = req
+        self.origin_path = origin_path
         self.metadata = None
 
     def __str__(self):
@@ -108,6 +109,7 @@ class SetupToolsRequirement(object):
             'repo_url': repo_url,
             'packages': packages,
             'modules': py_modules,
+            'path': self.origin_path
         }
 
     def resolve(self):
@@ -149,8 +151,9 @@ class PipURLInstallRequirement(object):
     """
     _archive_regex = re.compile('^(http|https)://[^/]+/.+\.(zip|tar)(\.gz|)$', re.IGNORECASE)
 
-    def __init__(self, install_req):
+    def __init__(self, install_req, origin_path):
         self._install_req = install_req
+        self.origin_path = origin_path
         if install_req.link is None:
             raise 'No URL found in install_req: %s' % str(install_req)
         self.url = parse_repo_url(install_req.link.url)
@@ -191,6 +194,7 @@ class PipURLInstallRequirement(object):
             'repo_url': self.url,
             'packages': packages,
             'modules': py_modules,
+            'path': self.origin_path
         }
 
     def resolve(self):
