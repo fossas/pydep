@@ -78,12 +78,19 @@ def list_info(args):
     setup_dirs = pydep.setup_py.setup_dirs(container_dir)
     setup_infos = []
     for setup_dir in setup_dirs:
-        setup_dict, err = pydep.setup_py.setup_info_dir(setup_dir)
-        if err is not None:
-            sys.stderr.write('failed due to error: %s\n' % err)
-            sys.exit(1)
-        setup_infos.append(
-            setup_dict_to_json_serializable_dict(setup_dict, rootdir=path.relpath(setup_dir, container_dir)))
+        try: 
+            setup_dict, err = pydep.setup_py.setup_info_dir(setup_dir)
+            if err is not None:
+                sys.stderr.write('failed due to error: %s\n' % err)
+                sys.exit(1)
+        except Exception as err:
+            # this was added in since there can be setup files that throw an exception
+            # example: https://github.com/pytest-dev/pytest/blob/master/extra/setup-py.test/setup.py
+            # we should be safe to ignore exceptions when retrieving package info but we can still write to stderr
+            sys.stderr.write('failed parsing folder: {0} due to error: {1}\n'.format(setup_dir, err))
+        else:
+            setup_infos.append(
+                setup_dict_to_json_serializable_dict(setup_dict, rootdir=path.relpath(setup_dir, container_dir)))
     print(json.dumps(setup_infos))
 
 
