@@ -48,6 +48,12 @@ def requirements_from_setup_py(rootdir):
     reqs = []
     if 'install_requires' in setup_dict:
         req_strs = setup_dict['install_requires']
+        # Deal with case like:
+        # install_requires = 'setuptools'
+        # where it should be
+        # install_requires = ['setuptools']
+        if isinstance(req_strs, str):
+            req_strs = [req_strs]
         for req_str in req_strs:
             reqs.append(SetupToolsRequirement(pr.Requirement.parse(req_str), path.join(rootdir, 'setup.py')))
     return reqs, None
